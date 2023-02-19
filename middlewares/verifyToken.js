@@ -9,7 +9,7 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
       if (err)
         return res.status(401).json({
           success: false,
-          mes: "Invalid access token",
+          mes: "Token is expired",
         });
       req.user = decode;
       next();
