@@ -1,7 +1,9 @@
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const { generateAccessToken, generateRefreshToken } = require("../middlewares/jwt");
+const sendMailer = require("../untils/sendMailer");
 const register = asyncHandler(async (req, res, next) => {
   const { email, password, firstName, lastName, mobile } = req.body;
   if (!email || !password || !firstName || !lastName)
@@ -69,10 +71,57 @@ const logout = asyncHandler(async (req, res) => {
   res.clearCookie("refreshToken", { httpOnly: true, secure: true });
   return res.statusCode(200).json({ success: true, msg: "Logout successfully" });
 });
+//xác thực bằng cách gửi link qua mail
+const forgotPass = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  // console.log(email);
+  if (!email) throw new Error("Missing email");
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
+  const resetToken = await user.createPasswordChangeToken();
+  await user.save();
+
+  const html = `Xin vui lòng chọn link dưới đây để đổi mật khâu của bạn.Link sẽ hết hạn trong 5p tính từ bây giờ.<a href =${process.env.URL_SERVER}/api/user/reset_pass/${resetToken}>Click</a>`;
+
+  const data = {
+    email,
+    resetToken,
+    html,
+  };
+  const send = await sendMailer(data);
+  // console.log(send);
+  return res.status(200).json({
+    success: true,
+    msg: send ? "Send mail successfully" : "Failed to send mail",
+  });
+});
+const resetPass = asyncHandler(async (req, res) => {
+  const { password, token } = req.body;
+  if (!password || !token) throw new Error("Missing value");
+  const hashToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashToken,
+    passwordResetExpired: { $gt: Date.now() },
+  });
+  if (!user) {
+    throw new Error("Cannot reset password");
+  }
+  user.password = password;
+  user.passwordResetToken = null;
+  user.passwordResetExpired = null;
+  user.passwordChangeAt = Date.now();
+  await user.save();
+  return res.status(200).json({
+    success: user ? true : false,
+    msg: user ? "Updated password sucessfully" : "Update password is wrong",
+  });
+});
 module.exports = {
   register,
   login,
   getOne,
   refreshAccessToken,
   logout,
+  forgotPass,
+  resetPass,
 };
