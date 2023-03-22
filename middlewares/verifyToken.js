@@ -21,6 +21,15 @@ const verifyAccessToken = asyncHandler(async (req, res, next) => {
     });
   }
 });
+const isAdmin = asyncHandler(async (req, res, next) => {
+  const { role } = req.user;
+  if (role !== "admin") {
+    // throw new Error("You are not allowed to router");
+    return res.status(401).json({ success: false, msg: "You are not allowed to router" });
+  }
+  next();
+});
 module.exports = {
   verifyAccessToken,
+  isAdmin,
 };

@@ -8,8 +8,7 @@ const register = asyncHandler(async (req, res, next) => {
   const { email, password, firstName, lastName, mobile } = req.body;
   if (!email || !password || !firstName || !lastName)
     return res.status(400).json({ success: false, msg: "Missing value" });
-  const user = await User.findOne({ email, mobile });
-
+  const user = await User.findOne({ email });
   if (user) {
     throw new Error("User has exist");
   } else {
@@ -25,12 +24,15 @@ const login = asyncHandler(async (req, res, next) => {
   if (!email || !password) return res.status(400).json({ success: false, msg: "Missing value" });
   const response = await User.findOne({ email });
   if (response && (await response.isCorrectPassword(password))) {
-    const { password, role, ...passData } = response.toObject();
+    const { password, role, refreshToken, ...passData } = response.toObject();
     const accessToken = generateAccessToken({ id: response._id, role });
-    const refreshToken = generateRefreshToken({ id: response._id });
+    const newrefreshToken = generateRefreshToken({ id: response._id });
     //lưu refresh token vào db
-    await User.findByIdAndUpdate(response._id, { refreshToken }, { new: true });
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    await User.findByIdAndUpdate(response._id, { refreshToken: newrefreshToken }, { new: true });
+    res.cookie("refreshToken", newrefreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     return res
       .status(200)
       .json({ success: true, msg: "Get sucessfully", token: accessToken, data: passData });
@@ -38,9 +40,9 @@ const login = asyncHandler(async (req, res, next) => {
     throw new Error("Invalid credentials");
   }
 });
-const getOne = asyncHandler(async (req, res, next) => {
+const getCurrent = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
-  const user = await User.findById(id);
+  const user = await User.findById(id).select("-refreshToken -password -role");
   // console.log(id);
   return res
     .status(200)
@@ -116,12 +118,67 @@ const resetPass = asyncHandler(async (req, res) => {
     msg: user ? "Updated password sucessfully" : "Update password is wrong",
   });
 });
+//filting, sorting
+const getUsers = asyncHandler(async (req, res, next) => {
+  // const result = await User.find().select("-refreshToken -password -role");
+  const pageOptions = {
+    page: parseInt(req.query.page, 10) <= 1 ? 0 : parseInt(req.query.page, 10) - 1 || 0,
+    limit: parseInt(req.query.limit, 10) || 10,
+  };
+
+  User.find()
+    .skip(pageOptions.page * pageOptions.limit)
+    .limit(pageOptions.limit)
+    .exec(function (err, doc) {
+      if (err) {
+        res.status(500).json({ success: false, msg: err });
+        return;
+      }
+      res.status(200).json({ success: true, msg: "Successfully loaded", data: doc });
+    });
+  // return res.status(200).json({ success: result ? true : false, data: result });
+});
+const delUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.user;
+  if (!id) throw new Error("Missing value for user");
+  const result = await User.findByIdAndDelete({ _id: id });
+  return res.status(200).json({
+    success: result ? true : false,
+    msg: result ? `User with email ${result.email} succcess` : "Cannot delete user",
+  });
+});
+const upCurrentUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.user;
+  if (!id || Object.keys(req.body).length <= 0) throw new Error("Missing value for user");
+  const result = await User.findByIdAndUpdate({ _id: id }, req.body, { new: true }).select(
+    "-password -role -refreshToken",
+  );
+  return res.status(200).json({
+    success: result ? true : false,
+    msg: result ? `User udpate succcessfully` : "Cannot update user",
+    data: result,
+  });
+});
+const delUserByAdmin = asyncHandler(async (req, res, next) => {
+  const { id } = req.body;
+  if (!id) throw new Error("Missing value for user");
+  const result = await User.findByIdAndDelete({ _id: id });
+  return res.status(200).json({
+    success: result ? true : false,
+    msg: result ? `User delete succcessfully` : "Cannot delete user",
+    // data: result,
+  });
+});
 module.exports = {
   register,
   login,
-  getOne,
+  getCurrent,
   refreshAccessToken,
   logout,
   forgotPass,
   resetPass,
+  getUsers,
+  delUser,
+  upCurrentUser,
+  delUserByAdmin,
 };
