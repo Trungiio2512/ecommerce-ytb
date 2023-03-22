@@ -22,20 +22,52 @@ const getProduct = asyncHandler(async (req, res) => {
   });
 });
 const getAllProduct = asyncHandler(async (req, res) => {
-  //   const { pid } = req.params;
+  // const { pid } = req.params;
   const queries = { ...req.query };
 
   const excludeFields = ["limit", "sort", "page", "fields"];
   excludeFields.forEach((field) => delete queries[field]);
 
   //format lại operators
-  let queryString = JSON.stringify();
-  const products = await Product.find();
-  return res.status(200).json({
-    success: products ? true : false,
-    msg: products ? "Get products successfully" : "Cannot get products",
-    data: products,
+  let queryString = JSON.stringify(queries);
+  queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchEl) => `$${matchEl}`);
+  // const formattedQueries = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchEl) => `$${matchEl}`);
+  const formattedQueries = JSON.parse(queryString);
+
+  //filtering
+  if (queries?.title) formattedQueries.title = { $regex: queries.title, $options: "i" };
+  let queriesProduct = Product.find(formattedQueries);
+  //sortting
+  if (req.query?.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    console.log(sortBy);
+    queriesProduct = queriesProduct.sort(sortBy);
+  }
+
+  //fields limitting
+  if (req.query?.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    queriesProduct = queriesProduct.select(fields);
+  }
+
+  //panigation
+  const page = +req.query?.page || 1;
+  const limit = +req.query?.limit || process.env.LIMIT_PRODUCT;
+  const skip = (page - 1) * limit;
+  queriesProduct.skip(skip).limit(limit);
+  // số lượng sản phâm thoả mãn !== số lượng sản phẩm trả về
+  queriesProduct.exec(async (err, response) => {
+    if (err) throw new Error(err.message);
+    const count = await Product.find(formattedQueries).countDocuments();
+    //executed queries
+    return res.status(200).json({
+      success: response ? true : false,
+      msg: response ? "Get products successfully" : "Cannot get products",
+      count,
+      data: response,
+    });
   });
+  //sortting
 });
 const upProduct = asyncHandler(async (req, res) => {
   const { pid } = req.params;
@@ -60,10 +92,12 @@ const delProduct = asyncHandler(async (req, res) => {
     data: product,
   });
 });
+const ratings = asyncHandler(async (req, res) => {});
 module.exports = {
   createProduct,
   getProduct,
   getAllProduct,
   upProduct,
   delProduct,
+  ratings,
 };
