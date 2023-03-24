@@ -92,7 +92,36 @@ const delProduct = asyncHandler(async (req, res) => {
     data: product,
   });
 });
-const ratings = asyncHandler(async (req, res) => {});
+const ratings = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  const { star, comment, pid } = req.body;
+  if (!star || !pid) throw new Error("Missing value");
+  const ratingProduct = await Product.findById(pid);
+  // console.log(ratingProduct);
+  const existRating = ratingProduct?.ratings?.find((el) => el.postedBy.toString() === id);
+  if (existRating) {
+    //update comment star
+    await Product.updateOne(
+      { ratings: { $elemMatch: existRating } },
+      { $set: { "ratings.$.star": star, "ratings.$.comment": comment } },
+      { new: true },
+    );
+  } else {
+    //add star comment
+    await Product.findByIdAndUpdate(
+      pid,
+      { $push: { ratings: { star, comment, postedBy: id } } },
+      { new: true },
+    );
+  }
+  // sum star rating
+  const updatedProduct = await Product.findById(pid);
+  const totalStar = updatedProduct?.ratings.reduce((acc, cur) => acc + Number(cur.star), 0);
+  updatedProduct.totalRatings = Math.round((totalStar * 10) / updatedProduct.ratings.length) / 10;
+
+  await updatedProduct.save();
+  return res.status(200).json({ success: true, updatedProduct });
+});
 module.exports = {
   createProduct,
   getProduct,
