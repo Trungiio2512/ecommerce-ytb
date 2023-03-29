@@ -3,8 +3,10 @@ const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 const createProduct = asyncHandler(async (req, res) => {
   if (!req.body.title) throw new Error("Title product is not available");
+  if (!req.body.files) throw new Error("Images product is not available");
   if (Object.keys(req.body).length === 0) throw new Error("Missing value for product");
   req.body.slug = slugify(req.body.title);
+  req.body.files = req.body.files.map((ele) => ele.path);
   const newProduct = await Product.create(req.body);
   return res.status(200).json({
     success: newProduct ? true : false,
@@ -122,6 +124,19 @@ const ratings = asyncHandler(async (req, res) => {
   await updatedProduct.save();
   return res.status(200).json({ success: true, updatedProduct });
 });
+const uploadImage = asyncHandler(async (req, res, next) => {
+  // const { files } = req.files;
+  const { pid } = req.params;
+  if (req?.file) throw new Error("Missing images file");
+  const response = await Product.findByIdAndUpdate(
+    pid,
+    {
+      $push: { images: { $each: req.files.map((ele) => ele.path) } },
+    },
+    { new: true },
+  );
+  return res.json({ success: response ? true : false, data: response });
+});
 module.exports = {
   createProduct,
   getProduct,
@@ -129,4 +144,5 @@ module.exports = {
   upProduct,
   delProduct,
   ratings,
+  uploadImage,
 };

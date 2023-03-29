@@ -139,6 +139,7 @@ const getUsers = asyncHandler(async (req, res, next) => {
   // return res.status(200).json({ success: result ? true : false, data: result });
 });
 const delUser = asyncHandler(async (req, res, next) => {
+  ``;
   const { id } = req.user;
   if (!id) throw new Error("Missing value for user");
   const result = await User.findByIdAndDelete({ _id: id });
@@ -150,6 +151,7 @@ const delUser = asyncHandler(async (req, res, next) => {
 const upCurrentUser = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
   if (!id || Object.keys(req.body).length <= 0) throw new Error("Missing value for user");
+  // if (!req.body?.address) throw new Error("Cannot missing address");
   const result = await User.findByIdAndUpdate({ _id: id }, req.body, { new: true }).select(
     "-password -role -refreshToken",
   );
@@ -169,6 +171,62 @@ const delUserByAdmin = asyncHandler(async (req, res, next) => {
     // data: result,
   });
 });
+const upCart = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  const { pid, quantity, color } = req.body;
+  if (!pid || !quantity || !color) throw new Error("Missing value");
+  const cartUser = await User.findById(id).select("cart");
+  const product = cartUser?.cart?.find((el) => el?.product.toString() === pid);
+  let response;
+  if (product) {
+    if (product?.color === color) {
+      response = await User.updateOne(
+        { cart: { $elemMatch: product } },
+        { $set: { "cart.$.quantity": +product?.quantity + +quantity } },
+        { new: true },
+      );
+    } else {
+      response = await User.findByIdAndUpdate(
+        id,
+        {
+          $push: { cart: { product: pid, quantity, color } },
+        },
+        { new: true },
+      );
+    }
+  } else {
+    response = await User.findByIdAndUpdate(
+      id,
+      {
+        $push: { cart: { product: pid, quantity, color } },
+      },
+      { new: true },
+    );
+  }
+  return res.status(200).json({
+    susccess: response ? true : false,
+    msg: response ? "Success" : "Failed",
+  });
+  // console.log(cart);
+});
+const upQuantityProductCart = asyncHandler(async (req, res, next) => {
+  const { id } = req.user;
+  const { pid, quantity, color } = req.body;
+  if (!pid || !quantity || !color) throw new Error("Missing value");
+  const cartUser = await User.findById(id).select("cart");
+  const product = cartUser?.cart?.find(
+    (el) => el?.product.toString() === pid && el?.color === color,
+  );
+  const response = await User.updateOne(
+    { cart: { $elemMatch: product } },
+    { $set: { "cart.$.quantity": quantity } },
+    { new: true },
+  );
+  return res.status(200).json({
+    susccess: response ? true : false,
+    msg: response ? "Success" : "Failed",
+  });
+});
 module.exports = {
   register,
   login,
@@ -181,4 +239,6 @@ module.exports = {
   delUser,
   upCurrentUser,
   delUserByAdmin,
+  upCart,
+  upQuantityProductCart,
 };

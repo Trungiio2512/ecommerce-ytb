@@ -48,7 +48,7 @@ var blogSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-    images: {
+    image: {
       type: String,
       default: "https://blog.topcv.vn/wp-content/uploads/2020/04/Thumb-TCVDBPV-1-1.png",
     },

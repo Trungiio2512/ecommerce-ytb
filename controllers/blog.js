@@ -6,6 +6,8 @@ const create = asyncHandler(async (req, res) => {
   if (!title || !description || !category) throw new Error("Missing value");
   if (Object.keys(req.body).length === 0) throw new Error("Missing value for blog ");
   req.body.slug = slugify(title);
+  console.log(req.file);
+  if (req.file) req.body.image = req.file.path;
   const newBlog = await Blog.create(req.body);
   return res.status(200).json({
     success: newBlog ? true : false,
