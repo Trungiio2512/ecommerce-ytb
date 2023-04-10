@@ -29,7 +29,25 @@ const isAdmin = asyncHandler(async (req, res, next) => {
   }
   next();
 });
+const isCreator = asyncHandler(async (req, res, next) => {
+  const { role } = req.user;
+  if (role !== "creator") {
+    // throw new Error("You are not allowed to router");
+    return res.status(401).json({ success: false, msg: "You are not allowed to router" });
+  }
+  next();
+});
+const isCreatorOrAdmin = asyncHandler(async (req, res, next) => {
+  const { role } = req.user;
+  if (role !== "creator" && role !== "admin") {
+    // throw new Error("You are not allowed to router");
+    return res.status(401).json({ success: false, msg: "You are not allowed to router", role });
+  }
+  next();
+});
 module.exports = {
   verifyAccessToken,
   isAdmin,
+  isCreatorOrAdmin,
+  isCreator,
 };
