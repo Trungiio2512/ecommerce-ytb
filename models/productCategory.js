@@ -13,9 +13,20 @@ var prodicuCategory = new mongoose.Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: String,
+      // require: true,
+      default: "",
+    },
+    brands: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Brands",
+      },
+    ],
   },
   { timestamps: true },
 );
 
 //Export the model
-module.exports = mongoose.model("ProductCategory", prodicuCategory);
+module.exports = mongoose.model("Category", prodicuCategory);

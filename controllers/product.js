@@ -137,6 +137,7 @@ const uploadImage = asyncHandler(async (req, res, next) => {
   );
   return res.json({ success: response ? true : false, data: response });
 });
+
 module.exports = {
   createProduct,
   getProduct,

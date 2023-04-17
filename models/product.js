@@ -13,17 +13,33 @@ var productSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      unique: true,
-      lowercase: true,
+    },
+    specifications: {
+      type: Array,
+      required: true,
+      default: [],
+      // unique: true,
     },
     description: {
       type: String,
-      required: true,
-      // unique: true,
+      default: "",
+    },
+    warranty: {
+      type: String,
+      default: "",
+    },
+    delivery: {
+      type: String,
+      default: "",
+    },
+    payment: {
+      type: String,
+      default: "",
     },
     brand: {
-      type: String,
-      required: true,
+      type: mongoose.Types.ObjectId,
+      // required: true,
+      ref: "Brand",
     },
     price: {
       type: Number,
@@ -48,9 +64,13 @@ var productSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    thumb: {
+      type: String,
+      default: "",
+    },
     color: {
       type: String,
-      enum: ["black", "white", "red"],
+      require: true,
     },
     ratings: [
       {

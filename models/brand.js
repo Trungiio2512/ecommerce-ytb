@@ -13,6 +13,16 @@ var brandSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: String,
+      default: "",
+    },
+    categories: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Category",
+      },
+    ],
   },
   { timestamps: true },
 );
