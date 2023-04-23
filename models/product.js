@@ -45,6 +45,24 @@ var productSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    priceSale: {
+      type: Number,
+    },
+    priceSaleExpired: {
+      type: Date,
+    },
+    features: {
+      type: Boolean,
+      default: false,
+    },
+    news: {
+      type: Boolean,
+      default: false,
+    },
+    deal: {
+      type: Boolean,
+      default: true,
+    },
     category: {
       type: mongoose.Types.ObjectId,
       // required: true,

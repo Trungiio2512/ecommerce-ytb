@@ -11,6 +11,6 @@ router.use(isAdmin);
 router.post("/create", uploader.array("images", 10), ctrls.createProduct);
 router.delete("/", ctrls.delProduct);
 router.put("/:pid", uploader.array("images", 10), ctrls.upProduct);
-router.put("/upload_cimage/:pid", uploader.array("images", 10), ctrls.uploadImage);
+router.put("/upload_image/:pid", uploader.array("images", 10), ctrls.uploadImage);
 
 module.exports = router;

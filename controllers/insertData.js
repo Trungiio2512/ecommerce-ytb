@@ -1,6 +1,7 @@
 const Product = require("../models/product");
 const Brand = require("../models/brand");
 const productCategory = require("../models/productCategory");
+const blog = require("../models/blog");
 
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
@@ -44,6 +45,7 @@ const product = async (product) => {
       payment: product?.infomations?.PAYMENT,
       brand: brandId,
       price: price < 1000000 ? price * 1000 : price,
+      priceSale: price < 1000000 ? Math.round(price / 2) * 1000 : Math.round(price / 2),
       category: cateId,
       quantity: Math.round(Math.random() * 1000) + 700,
       sold: Math.round(Math.random() * 700),
@@ -115,6 +117,7 @@ const insertProduct = asyncHandler(async (req, res) => {
   }
   await Promise.all(promises);
   //  console.log(first)
+
   return res.status(200).json({ msg: "ok" });
 });
 module.exports = {

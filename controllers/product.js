@@ -1,12 +1,14 @@
 const Product = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
+const cloudinary = require("cloudinary").v2;
 const createProduct = asyncHandler(async (req, res) => {
   if (!req.body.title) throw new Error("Title product is not available");
-  if (!req.body.files) throw new Error("Images product is not available");
+  if (!req.files) throw new Error("Images product is not available");
   if (Object.keys(req.body).length === 0) throw new Error("Missing value for product");
+  console.log(req.files);
   req.body.slug = slugify(req.body.title);
-  req.body.files = req.body.files.map((ele) => ele.path);
+  req.body.images = req.files.map((ele) => ele.path);
   const newProduct = await Product.create(req.body);
   return res.status(200).json({
     success: newProduct ? true : false,
@@ -40,9 +42,10 @@ const getAllProduct = asyncHandler(async (req, res) => {
   if (queries?.title) formattedQueries.title = { $regex: queries.title, $options: "i" };
   let queriesProduct = Product.find(formattedQueries);
   //sortting
+  // abc,efg =>[abc,efg] => abc
   if (req.query?.sort) {
     const sortBy = req.query.sort.split(",").join(" ");
-    console.log(sortBy);
+    // console.log(sortBy);
     queriesProduct = queriesProduct.sort(sortBy);
   }
 
@@ -56,7 +59,11 @@ const getAllProduct = asyncHandler(async (req, res) => {
   const page = +req.query?.page || 1;
   const limit = +req.query?.limit || process.env.LIMIT_PRODUCT;
   const skip = (page - 1) * limit;
-  queriesProduct.skip(skip).limit(limit);
+  queriesProduct
+    .populate({ path: "brand", model: "Brand", select: "title slug" })
+    .populate({ path: "category", model: "Category", select: "title slug" })
+    .skip(skip)
+    .limit(limit);
   // số lượng sản phâm thoả mãn !== số lượng sản phẩm trả về
   queriesProduct.exec(async (err, response) => {
     if (err) throw new Error(err.message);

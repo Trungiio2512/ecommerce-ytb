@@ -13,7 +13,7 @@ const create = asyncHandler(async (req, res) => {
   });
 });
 const getAll = asyncHandler(async (req, res) => {
-  const response = await ProductCategory.find().select("title _id slug");
+  const response = await ProductCategory.find().select("title _id slug image brands");
   return res.status(200).json({ success: response ? true : false, data: response });
 });
 const update = asyncHandler(async (req, res) => {
