@@ -21,7 +21,7 @@ var prodicuCategory = new mongoose.Schema(
     brands: [
       {
         type: mongoose.Types.ObjectId,
-        ref: "Brands",
+        ref: "Brand",
       },
     ],
   },

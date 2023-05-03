@@ -2,26 +2,97 @@ const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const uniqid = require("uniqid");
+require("dotenv").config();
 const { generateAccessToken, generateRefreshToken } = require("../middlewares/jwt");
 const sendMailer = require("../untils/sendMailer");
+// const register = asyncHandler(async (req, res, next) => {
+//   const { email, password, firstName, lastName, mobile } = req.body;
+//   if (!email || !password || !firstName || !lastName)
+//     return res.status(400).json({ sucess: false, msg: "Missing value" });
+//   const user = await User.findOne({ email });
+//   if (user) {
+//     throw new Error("User has exist");
+//   } else {
+//     const newUser = await User.create(req.body);
+//     const accessToken = generateAccessToken({ id: newUser._id, role: newUser.role });
+//     const newrefreshToken = generateRefreshToken({ id: newUser._id });
+//     //lưu refresh token vào db
+//     await User.findByIdAndUpdate(newUser._id, { refreshToken: newrefreshToken }, { new: true });
+//     res.cookie("refreshToken", newrefreshToken, {
+//       httpOnly: true,
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+//     return res.status(200).json({
+//       sucess: newUser ? true : false,
+//       msg: newUser ? "User already" : "Something is wrong",
+//       data: newUser,
+//       token: accessToken,
+//     });
+//   }
+// });
 const register = asyncHandler(async (req, res, next) => {
   const { email, password, firstName, lastName, mobile } = req.body;
-  if (!email || !password || !firstName || !lastName)
-    return res.status(400).json({ success: false, msg: "Missing value" });
+  if (!email || !password || !firstName || !lastName || !mobile)
+    return res.status(400).json({ sucess: false, msg: "Missing value" });
   const user = await User.findOne({ email });
   if (user) {
     throw new Error("User has exist");
   } else {
-    const newUser = await User.create(req.body);
-    return res.status(200).json({
-      success: newUser ? true : false,
-      msg: newUser ? "User already" : "Something is wrong",
-    });
+    const token = uniqid();
+    res.cookie(
+      "user_register",
+      { ...req.body, token },
+      { httpOnly: true, maxAge: Date.now() + 5 * 1000 },
+    );
+    const html = `Vui vui lòng nhấn vào đây để xác thực tài khoản.<a href="${process.env.URL_SERVER}/api/v1/user/verify_email/${token}">Click</a>`;
+    const data = {
+      email,
+      html,
+      subject: "Hoàn tất đăng ký",
+    };
+    await sendMailer(data);
+    return res.status(200).json({ sucess: true, msg: "Please enter your email to verify" });
   }
 });
+const finalRegister = asyncHandler(async (req, res) => {
+  const cookies = req.cookies;
+  const { token } = req.params;
+  if (cookies?.user_register?.token !== token) {
+    res.clearCookie("user_register");
+    // throw new Error("Register failed");
+    return res.redirect(`${process.env.URL_ClIENT}/verify_email/sucess`);
+  } else {
+    const { token, ...passData } = cookies.user_register;
+    const newUser = await User.create(passData);
+    const accessToken = generateAccessToken({ id: newUser._id, role: newUser.role });
+    const newrefreshToken = generateRefreshToken({ id: newUser._id });
+    //lưu refresh token vào db
+    await User.findByIdAndUpdate(newUser._id, { refreshToken: newrefreshToken }, { new: true });
+    res.clearCookie("user_register");
+
+    res.cookie("refreshToken", newrefreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    // return res.status(200).json({
+    //   sucess: newUser ? true : false,
+    //   msg: newUser ? "User already" : "Something is wrong",
+    //   data: newUser,
+    //   token: accessToken,
+    // });
+    if (newUser) {
+      return res.redirect(`${process.env.URL_ClIENT}/verify_email/sucess`);
+    } else {
+      return res.redirect(`${process.env.URL_ClIENT}/verify_email/failed`);
+    }
+  }
+  // return res.status(200).json("ok");
+});
+
 const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ success: false, msg: "Missing value" });
+  if (!email || !password) return res.status(400).json({ sucess: false, msg: "Missing value" });
   const response = await User.findOne({ email });
   if (response && (await response.isCorrectPassword(password))) {
     const { password, role, refreshToken, ...passData } = response.toObject();
@@ -35,9 +106,9 @@ const login = asyncHandler(async (req, res, next) => {
     });
     return res
       .status(200)
-      .json({ success: true, msg: "Get sucessfully", token: accessToken, data: passData });
+      .json({ sucess: true, msg: "Login succcessfully", token: accessToken, data: passData });
   } else {
-    throw new Error("Invalid credentials");
+    throw new Error("Password is incorrect or email not existing");
   }
 });
 const getCurrent = asyncHandler(async (req, res, next) => {
@@ -46,7 +117,7 @@ const getCurrent = asyncHandler(async (req, res, next) => {
   // console.log(id);
   return res
     .status(200)
-    .json({ success: user ? true : false, msg: user ? "success" : "User not exists", data: user });
+    .json({ sucess: user ? true : false, msg: user ? "sucess" : "User not exists", data: user });
 });
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
@@ -55,7 +126,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
   jwt.verify(cookie.refreshToken, process.env.JWT_SECRET, async (err, data) => {
     if (err) {
-      return res.status(401).json({ success: false, msg: "You must be logged in" });
+      return res.status(401).json({ sucess: false, msg: "You must be logged in" });
     }
     const response = await User.findOne({ _id: data.id, refreshToken: cookie.refreshToken });
     const newAccessToken =
@@ -71,7 +142,7 @@ const logout = asyncHandler(async (req, res) => {
   }
   await User.findByIdAndUpdate({ _id: id }, { refreshToken: "" }, { new: true });
   res.clearCookie("refreshToken", { httpOnly: true, secure: true });
-  return res.statusCode(200).json({ success: true, msg: "Logout successfully" });
+  return res.statusCode(200).json({ sucess: true, msg: "Logout sucessfully" });
 });
 //xác thực bằng cách gửi link qua mail
 const forgotPass = asyncHandler(async (req, res) => {
@@ -79,33 +150,39 @@ const forgotPass = asyncHandler(async (req, res) => {
   // console.log(email);
   if (!email) throw new Error("Missing email");
   const user = await User.findOne({ email });
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error("User has not exists");
   const resetToken = await user.createPasswordChangeToken();
   await user.save();
 
-  const html = `Xin vui lòng chọn link dưới đây để đổi mật khâu của bạn.Link sẽ hết hạn trong 5p tính từ bây giờ.<a href =${process.env.URL_SERVER}/api/user/reset_pass/${resetToken}>Click</a>`;
+  const html = `Xin vui lòng chọn link dưới đây để đổi mật khâu của bạn.Link sẽ hết hạn trong 15p tính từ bây giờ.<strong>${resetToken}</strong>`;
 
   const data = {
     email,
-    resetToken,
+    // resetToken,
     html,
+    subject: "Đây là mã của bạn",
   };
   const send = await sendMailer(data);
   // console.log(send);
   return res.status(200).json({
-    success: true,
-    msg: send ? "Send mail successfully" : "Failed to send mail",
+    sucess: send ? true : false,
+    msg: send ? "Send mail sucessfully" : "Failed to send mail",
   });
 });
 const resetPass = asyncHandler(async (req, res) => {
-  const { password, token } = req.body;
+  const { token } = req.params;
+  const { password } = req.body;
   if (!password || !token) throw new Error("Missing value");
   const hashToken = crypto.createHash("sha256").update(token).digest("hex");
+  console.log(token + " " + hashToken);
   const user = await User.findOne({
     passwordResetToken: hashToken,
     passwordResetExpired: { $gt: Date.now() },
   });
+  // console.log(user);
   if (!user) {
+    // user.passwordResetToken = "";
+    // user.passwordResetExpired = "";
     throw new Error("Cannot reset password");
   }
   user.password = password;
@@ -114,7 +191,7 @@ const resetPass = asyncHandler(async (req, res) => {
   user.passwordChangeAt = Date.now();
   await user.save();
   return res.status(200).json({
-    success: user ? true : false,
+    sucess: user ? true : false,
     msg: user ? "Updated password sucessfully" : "Update password is wrong",
   });
 });
@@ -131,12 +208,12 @@ const getUsers = asyncHandler(async (req, res, next) => {
     .limit(pageOptions.limit)
     .exec(function (err, doc) {
       if (err) {
-        res.status(500).json({ success: false, msg: err });
+        res.status(500).json({ sucess: false, msg: err });
         return;
       }
-      res.status(200).json({ success: true, msg: "Successfully loaded", data: doc });
+      res.status(200).json({ sucess: true, msg: "sucessfully loaded", data: doc });
     });
-  // return res.status(200).json({ success: result ? true : false, data: result });
+  // return res.status(200).json({ sucess: result ? true : false, data: result });
 });
 const delUser = asyncHandler(async (req, res, next) => {
   ``;
@@ -144,7 +221,7 @@ const delUser = asyncHandler(async (req, res, next) => {
   if (!id) throw new Error("Missing value for user");
   const result = await User.findByIdAndDelete({ _id: id });
   return res.status(200).json({
-    success: result ? true : false,
+    sucess: result ? true : false,
     msg: result ? `User with email ${result.email} succcess` : "Cannot delete user",
   });
 });
@@ -156,7 +233,7 @@ const upCurrentUser = asyncHandler(async (req, res, next) => {
     "-password -role -refreshToken",
   );
   return res.status(200).json({
-    success: result ? true : false,
+    sucess: result ? true : false,
     msg: result ? `User udpate succcessfully` : "Cannot update user",
     data: result,
   });
@@ -166,7 +243,7 @@ const delUserByAdmin = asyncHandler(async (req, res, next) => {
   if (!id) throw new Error("Missing value for user");
   const result = await User.findByIdAndDelete({ _id: id });
   return res.status(200).json({
-    success: result ? true : false,
+    sucess: result ? true : false,
     msg: result ? `User delete succcessfully` : "Cannot delete user",
     // data: result,
   });
@@ -205,7 +282,7 @@ const upCart = asyncHandler(async (req, res) => {
   }
   return res.status(200).json({
     susccess: response ? true : false,
-    msg: response ? "Success" : "Failed",
+    msg: response ? "sucess" : "Failed",
   });
   // console.log(cart);
 });
@@ -224,7 +301,7 @@ const upQuantityProductCart = asyncHandler(async (req, res, next) => {
   );
   return res.status(200).json({
     susccess: response ? true : false,
-    msg: response ? "Success" : "Failed",
+    msg: response ? "sucess" : "Failed",
   });
 });
 module.exports = {
@@ -241,4 +318,5 @@ module.exports = {
   delUserByAdmin,
   upCart,
   upQuantityProductCart,
+  finalRegister,
 };

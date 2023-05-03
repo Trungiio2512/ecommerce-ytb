@@ -10,21 +10,21 @@ const create = asyncHandler(async (req, res) => {
 
   const response = await banner.create({ images, filenames });
   if (response) {
-    return res.status(200).json({ success: true, msg: "Add banner successfully" });
+    return res.status(200).json({ sucess: true, msg: "Add banner sucessfully" });
   } else {
     const promiseDelImages = [];
     for (let i of filenames) {
       promiseDelImages.push(await cloudinary.uploader.destroy(i));
     }
     Promise.all(promiseDelImages);
-    return res.status(500).json({ success: false, msg: "Has problems uploading images" });
+    return res.status(500).json({ sucess: false, msg: "Has problems uploading images" });
   }
 });
 const get = asyncHandler(async (req, res) => {
   const response = await banner.find();
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Get banner images successfully" : "Has problems with the banner",
+    sucess: response ? true : false,
+    msg: response ? "Get banner images sucessfully" : "Has problems with the banner",
     data: response,
   });
 });

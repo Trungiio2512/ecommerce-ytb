@@ -5,7 +5,7 @@ const dbConnect = async () => {
     const conn = await mongoose.connect(process.env.MONGOOSE_URL);
     // mongoose.set("strictQuery", false);
     if (conn.connection.readyState === 1) {
-      console.log("db connection successful");
+      console.log("db connection sucessful");
     } else console.log("db connection is failed");
   } catch (error) {
     console.log(error);

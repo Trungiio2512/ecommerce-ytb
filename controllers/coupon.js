@@ -11,14 +11,14 @@ const create = asyncHandler(async (req, res) => {
   });
 
   return res.status(200).json({
-    success: newCoupon ? true : false,
-    msg: newCoupon ? "Create blog  successfully" : "Cannot create blog ",
+    sucess: newCoupon ? true : false,
+    msg: newCoupon ? "Create blog  sucessfully" : "Cannot create blog ",
     data: newCoupon,
   });
 });
 const getAll = asyncHandler(async (req, res) => {
   const response = await Coupon.find();
-  return res.status(200).json({ success: response ? true : false, data: response });
+  return res.status(200).json({ sucess: response ? true : false, data: response });
 });
 const update = asyncHandler(async (req, res) => {
   const { cid } = req.params;
@@ -28,8 +28,8 @@ const update = asyncHandler(async (req, res) => {
     req.body.expired = Date.now() + Number(req.body.expired * 24 * 60 * 60 * 1000);
   const response = await Coupon.findByIdAndUpdate(cid, req.body, { new: true });
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Update coupon successfully" : "Cannot update coupon",
+    sucess: response ? true : false,
+    msg: response ? "Update coupon sucessfully" : "Cannot update coupon",
     data: response,
   });
 });
@@ -37,8 +37,8 @@ const deleted = asyncHandler(async (req, res) => {
   const { cid } = req.params;
   const response = await Coupon.findByIdAndDelete(cid);
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Delete coupon successfully" : "Cannot Delete coupon",
+    sucess: response ? true : false,
+    msg: response ? "Delete coupon sucessfully" : "Cannot Delete coupon",
     // data: response,
   });
 });

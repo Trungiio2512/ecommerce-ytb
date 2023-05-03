@@ -7,22 +7,24 @@ const create = asyncHandler(async (req, res) => {
   req.body.slug = slugify(req.body.title);
   const newCategory = await ProductCategory.create(req.body);
   return res.status(200).json({
-    success: newCategory ? true : false,
-    msg: newCategory ? "Create product category successfully" : "Cannot create product category",
+    sucess: newCategory ? true : false,
+    msg: newCategory ? "Create product category sucessfully" : "Cannot create product category",
     data: newCategory,
   });
 });
 const getAll = asyncHandler(async (req, res) => {
-  const response = await ProductCategory.find().select("title _id slug image brands");
-  return res.status(200).json({ success: response ? true : false, data: response });
+  const response = await ProductCategory.find()
+    .select("title _id slug image brands")
+    .populate({ path: "brands", select: "title slug image" });
+  return res.status(200).json({ sucess: response ? true : false, data: response });
 });
 const update = asyncHandler(async (req, res) => {
   const { pcid } = req.params;
   req.body.slug = slugify(req.body.title);
   const response = await ProductCategory.findByIdAndUpdate(pcid, req.body, { new: true });
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Update product category successfully" : "Cannot update product category",
+    sucess: response ? true : false,
+    msg: response ? "Update product category sucessfully" : "Cannot update product category",
     data: response,
   });
 });
@@ -30,8 +32,8 @@ const deleted = asyncHandler(async (req, res) => {
   const { pcid } = req.params;
   const response = await ProductCategory.findByIdAndDelete(pcid);
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Delete product category successfully" : "Cannot Delete product category",
+    sucess: response ? true : false,
+    msg: response ? "Delete product category sucessfully" : "Cannot Delete product category",
     // data: response,
   });
 });

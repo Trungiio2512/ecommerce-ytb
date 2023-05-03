@@ -21,6 +21,6 @@ const initRoutes = (app) => {
   app.use("/api/v1/banner", banner);
   app.use("/api/v1/insert", insert);
   app.use(notFound);
-  // app.use(errorhandler);
+  app.use(errorhandler);
 };
 module.exports = initRoutes;

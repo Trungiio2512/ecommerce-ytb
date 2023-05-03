@@ -15,7 +15,7 @@ var orderSchema = new mongoose.Schema({
   status: {
     type: String,
     default: "Processing",
-    enum: ["Processing", "Cancelled", "Successed"],
+    enum: ["Processing", "Cancelled", "sucessed"],
   },
   total: Number,
   coupon: {

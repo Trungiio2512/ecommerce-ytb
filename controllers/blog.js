@@ -10,14 +10,14 @@ const create = asyncHandler(async (req, res) => {
   if (req.file) req.body.image = req.file.path;
   const newBlog = await Blog.create(req.body);
   return res.status(200).json({
-    success: newBlog ? true : false,
-    msg: newBlog ? "Create blog  successfully" : "Cannot create blog ",
+    sucess: newBlog ? true : false,
+    msg: newBlog ? "Create blog  sucessfully" : "Cannot create blog ",
     data: newBlog,
   });
 });
 const getAll = asyncHandler(async (req, res) => {
   const response = await Blog.find();
-  return res.status(200).json({ success: response ? true : false, data: response });
+  return res.status(200).json({ sucess: response ? true : false, data: response });
 });
 const update = asyncHandler(async (req, res) => {
   const { bid } = req.params;
@@ -25,8 +25,8 @@ const update = asyncHandler(async (req, res) => {
   req.body.slug = slugify(req.body.title);
   const response = await Blog.findByIdAndUpdate(bid, req.body, { new: true });
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Update blog successfully" : "Cannot update blog",
+    sucess: response ? true : false,
+    msg: response ? "Update blog sucessfully" : "Cannot update blog",
     data: response,
   });
 });
@@ -34,8 +34,8 @@ const deleted = asyncHandler(async (req, res) => {
   const { bid } = req.params;
   const response = await Blog.findByIdAndDelete(bid);
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Delete blog successfully" : "Cannot Delete blog",
+    sucess: response ? true : false,
+    msg: response ? "Delete blog sucessfully" : "Cannot Delete blog",
     // data: response,
   });
 });
@@ -55,7 +55,7 @@ const like = asyncHandler(async (req, res, next) => {
       },
       { new: true },
     );
-    return res.json({ success: response ? true : false, data: response });
+    return res.json({ sucess: response ? true : false, data: response });
   }
   const hasLike = blog?.likes.find((ele) => ele.toString() === id);
   if (hasLike) {
@@ -66,7 +66,7 @@ const like = asyncHandler(async (req, res, next) => {
       },
       { new: true },
     );
-    return res.json({ success: response ? true : false, data: response });
+    return res.json({ sucess: response ? true : false, data: response });
   } else {
     const response = await Blog.findByIdAndUpdate(
       bid,
@@ -75,7 +75,7 @@ const like = asyncHandler(async (req, res, next) => {
       },
       { new: true },
     );
-    return res.json({ success: response ? true : false, data: response });
+    return res.json({ sucess: response ? true : false, data: response });
   }
 });
 const dislike = asyncHandler(async (req, res, next) => {
@@ -93,7 +93,7 @@ const dislike = asyncHandler(async (req, res, next) => {
       },
       { new: true },
     );
-    return res.json({ success: response ? true : false, data: response });
+    return res.json({ sucess: response ? true : false, data: response });
   }
   const hasDisliked = blog?.dislikes.find((ele) => ele.toString() === id);
   if (hasDisliked) {
@@ -104,7 +104,7 @@ const dislike = asyncHandler(async (req, res, next) => {
       },
       { new: true },
     );
-    return res.json({ success: response ? true : false, data: response });
+    return res.json({ sucess: response ? true : false, data: response });
   } else {
     const response = await Blog.findByIdAndUpdate(
       bid,
@@ -113,7 +113,7 @@ const dislike = asyncHandler(async (req, res, next) => {
       },
       { new: true },
     );
-    return res.json({ success: response ? true : false, data: response });
+    return res.json({ sucess: response ? true : false, data: response });
   }
 });
 
@@ -122,7 +122,7 @@ const getBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findByIdAndUpdate(bid, { $inc: { numberView: 1 } }, { new: true })
     .populate("likes", "_id firstName lastName")
     .populate("dislikes", "_id firstName lastName");
-  return res.status(200).json({ success: blog ? true : false, data: blog });
+  return res.status(200).json({ sucess: blog ? true : false, data: blog });
 });
 module.exports = {
   create,

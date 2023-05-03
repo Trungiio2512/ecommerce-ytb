@@ -11,8 +11,8 @@ const createProduct = asyncHandler(async (req, res) => {
   req.body.images = req.files.map((ele) => ele.path);
   const newProduct = await Product.create(req.body);
   return res.status(200).json({
-    success: newProduct ? true : false,
-    msg: newProduct ? "Create product successfully" : "Cannot create product",
+    sucess: newProduct ? true : false,
+    msg: newProduct ? "Create product sucessfully" : "Cannot create product",
     data: newProduct,
   });
 });
@@ -20,8 +20,8 @@ const getProduct = asyncHandler(async (req, res) => {
   const { pid } = req.params;
   const product = await Product.findById({ _id: pid });
   return res.status(200).json({
-    success: product ? true : false,
-    msg: product ? "Get product successfully" : "Cannot Get product",
+    sucess: product ? true : false,
+    msg: product ? "Get product sucessfully" : "Cannot Get product",
     data: product,
   });
 });
@@ -70,8 +70,8 @@ const getAllProduct = asyncHandler(async (req, res) => {
     const count = await Product.find(formattedQueries).countDocuments();
     //executed queries
     return res.status(200).json({
-      success: response ? true : false,
-      msg: response ? "Get products successfully" : "Cannot get products",
+      sucess: response ? true : false,
+      msg: response ? "Get products sucessfully" : "Cannot get products",
       count,
       data: response,
     });
@@ -86,8 +86,8 @@ const upProduct = asyncHandler(async (req, res) => {
   }
   const product = await Product.findByIdAndUpdate({ _id: pid }, req.body, { new: true });
   return res.status(200).json({
-    success: product ? true : false,
-    msg: product ? "Update product successfully" : "Cannot update product",
+    sucess: product ? true : false,
+    msg: product ? "Update product sucessfully" : "Cannot update product",
     data: product,
   });
 });
@@ -96,8 +96,8 @@ const delProduct = asyncHandler(async (req, res) => {
   if (!pid) throw new Error("Missing value");
   const product = await Product.findByIdAndDelete({ _id: pid });
   return res.status(200).json({
-    success: product ? true : false,
-    msg: product ? "Delete product successfully" : "Cannot delete product",
+    sucess: product ? true : false,
+    msg: product ? "Delete product sucessfully" : "Cannot delete product",
     data: product,
   });
 });
@@ -129,7 +129,7 @@ const ratings = asyncHandler(async (req, res) => {
   updatedProduct.totalRatings = Math.round((totalStar * 10) / updatedProduct.ratings.length) / 10;
 
   await updatedProduct.save();
-  return res.status(200).json({ success: true, updatedProduct });
+  return res.status(200).json({ sucess: true, updatedProduct });
 });
 const uploadImage = asyncHandler(async (req, res, next) => {
   // const { files } = req.files;
@@ -142,7 +142,7 @@ const uploadImage = asyncHandler(async (req, res, next) => {
     },
     { new: true },
   );
-  return res.json({ success: response ? true : false, data: response });
+  return res.json({ sucess: response ? true : false, data: response });
 });
 
 module.exports = {

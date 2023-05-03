@@ -37,7 +37,7 @@ const product = async (product) => {
   await Product.create(
     {
       title: product?.name,
-      slug: JSON.stringify(slugify(product?.name)),
+      slug: slugify(product?.name),
       specifications: product?.description,
       description: product?.infomations?.DESCRIPTION,
       warranty: product?.infomations?.WARRANTY,
@@ -112,10 +112,12 @@ const insertProduct = asyncHandler(async (req, res) => {
   // for (let i of dataCate) {
   //   promises.push(brandCatefn(i?.brands, i?.cate));
   // }
-  for (let i of data) {
-    promises.push(product(i));
-  }
-  await Promise.all(promises);
+  // for (let i of data) {
+  //   promises.push(product(i));
+  // }
+  // await Promise.all(promises);
+  // const product = await Product.find()
+  await Product.updateMany({ news: true }, { $set: { totalRatings: 5 } });
   //  console.log(first)
 
   return res.status(200).json({ msg: "ok" });

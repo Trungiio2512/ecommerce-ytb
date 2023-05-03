@@ -7,22 +7,22 @@ const create = asyncHandler(async (req, res) => {
   req.body.slug = slugify(req.body.title);
   const newCategory = await BlogCategory.create(req.body);
   return res.status(200).json({
-    success: newCategory ? true : false,
-    msg: newCategory ? "Create blog category successfully" : "Cannot create blog category",
+    sucess: newCategory ? true : false,
+    msg: newCategory ? "Create blog category sucessfully" : "Cannot create blog category",
     data: newCategory,
   });
 });
 const getAll = asyncHandler(async (req, res) => {
   const response = await BlogCategory.find().select("title _id slug");
-  return res.status(200).json({ success: response ? true : false, data: response });
+  return res.status(200).json({ sucess: response ? true : false, data: response });
 });
 const update = asyncHandler(async (req, res) => {
   const { bcid } = req.params;
   req.body.slug = slugify(req.body.title);
   const response = await BlogCategory.findByIdAndUpdate(bcid, req.body, { new: true });
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Update blog category successfully" : "Cannot update blog category",
+    sucess: response ? true : false,
+    msg: response ? "Update blog category sucessfully" : "Cannot update blog category",
     data: response,
   });
 });
@@ -30,8 +30,8 @@ const deleted = asyncHandler(async (req, res) => {
   const { bcid } = req.params;
   const response = await BlogCategory.findByIdAndDelete(bcid);
   return res.status(200).json({
-    success: response ? true : false,
-    msg: response ? "Delete blog category successfully" : "Cannot Delete blog category",
+    sucess: response ? true : false,
+    msg: response ? "Delete blog category sucessfully" : "Cannot Delete blog category",
     // data: response,
   });
 });
