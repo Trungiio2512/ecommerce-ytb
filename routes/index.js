@@ -8,6 +8,9 @@ const coupon = require("./coupon");
 const order = require("./order");
 const banner = require("./banner");
 const insert = require("./insertData");
+const ram = require("./ram");
+const color = require("./color");
+const internal = require("./internal");
 const { errorhandler, notFound } = require("../middlewares/errorHandler");
 const initRoutes = (app) => {
   app.use("/api/v1/user", user);
@@ -20,6 +23,9 @@ const initRoutes = (app) => {
   app.use("/api/v1/order", order);
   app.use("/api/v1/banner", banner);
   app.use("/api/v1/insert", insert);
+  app.use("/api/v1/color", color);
+  app.use("/api/v1/ram", ram);
+  app.use("/api/v1/internal", internal);
   app.use(notFound);
   app.use(errorhandler);
 };

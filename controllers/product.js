@@ -18,7 +18,12 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 const getProduct = asyncHandler(async (req, res) => {
   const { pid } = req.params;
-  const product = await Product.findById({ _id: pid });
+  const product = await Product.findById({ _id: pid })
+    .populate({ path: "brand", model: "Brand", select: "title slug" })
+    .populate({ path: "category", model: "Category", select: "title slug" })
+    .populate({ path: "rams", model: "Ram", select: "name" })
+    .populate({ path: "internals", model: "Internal", select: "name" })
+    .populate({ path: "colors", model: "Color", select: "name" });
   return res.status(200).json({
     sucess: product ? true : false,
     msg: product ? "Get product sucessfully" : "Cannot Get product",
@@ -40,6 +45,25 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
   //filtering
   if (queries?.title) formattedQueries.title = { $regex: queries.title, $options: "i" };
+  // ['1', '2] || 1
+  if (queries?.rams) {
+    formattedQueries.rams = { $in: queries?.rams };
+  }
+  if (queries?.colors) {
+    formattedQueries.colors = { $in: queries?.colors };
+  }
+  if (queries?.internals) {
+    formattedQueries.internals = { $in: queries?.internals };
+  }
+  if (queries?.priceFrom) {
+    formattedQueries.price = { $gte: queries?.priceFrom };
+  }
+  if (queries?.priceTo) {
+    formattedQueries.price = { $lte: queries?.priceTo };
+  }
+  if (queries?.brand) {
+    formattedQueries.brand = { $eq: queries?.brand };
+  }
   let queriesProduct = Product.find(formattedQueries);
   //sortting
   // abc,efg =>[abc,efg] => abc
@@ -62,6 +86,9 @@ const getAllProduct = asyncHandler(async (req, res) => {
   queriesProduct
     .populate({ path: "brand", model: "Brand", select: "title slug" })
     .populate({ path: "category", model: "Category", select: "title slug" })
+    .populate({ path: "rams", model: "Ram", select: "name" })
+    .populate({ path: "internals", model: "Internal", select: "name" })
+    .populate({ path: "colors", model: "Color", select: "name" })
     .skip(skip)
     .limit(limit);
   // số lượng sản phâm thoả mãn !== số lượng sản phẩm trả về

@@ -1,4 +1,5 @@
 const ProductCategory = require("../models/productCategory");
+const products = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 const create = asyncHandler(async (req, res) => {
@@ -13,6 +14,7 @@ const create = asyncHandler(async (req, res) => {
   });
 });
 const getAll = asyncHandler(async (req, res) => {
+  // const countPd = await
   const response = await ProductCategory.find()
     .select("title _id slug image brands")
     .populate({ path: "brands", select: "title slug image" });

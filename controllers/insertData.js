@@ -2,12 +2,61 @@ const Product = require("../models/product");
 const Brand = require("../models/brand");
 const productCategory = require("../models/productCategory");
 const blog = require("../models/blog");
-
+const ram = require("../models/ram");
+const internal = require("../models/internal");
+const color = require("../models/color");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 const data = require("../../server/data/ecom.json");
 const dataCate = require("../../server/data/cate.json");
 const { default: mongoose } = require("mongoose");
+const colors = [
+  "Black",
+  "Black Leather",
+  "Black Metal",
+  "Blue",
+  "Camellia Red",
+  "Carbon Gray",
+  "Ceramic",
+  "Dazzling White",
+  "Deep pink",
+  "Forest blue",
+  "Glacier Silver",
+  "Gold",
+  "Gray",
+  "Grey",
+  "Mineral black",
+  "Navy Blue",
+  "Platinum",
+  "Quite Black",
+  "Really Blue",
+  "Red",
+  "Rose Gold",
+  "Silver",
+  "Space Gray",
+  "Sport Band",
+  "Stone",
+  "Teal",
+  "Titanium Bronze",
+  "Topaz Gold",
+  "Very Silver",
+  "White",
+];
+const rams = ["4GB", "8GB", "16GB", "32GB", "64GB"];
+const internals = ["16GB", "32GB", "64GB", "128GB", "256GB", "512GB"];
+
+const ramsId = ["6457adf361684bbb71f85c8a", "6457adf361684bbb71f85c8c", "6457adf361684bbb71f85c90"];
+const colorsId = [
+  "6457adf361684bbb71f85c4e",
+  "6457adf361684bbb71f85c5a",
+  "6457adf361684bbb71f85c64",
+];
+const internalsId = [
+  "6457adf361684bbb71f85c98",
+  "6457adf361684bbb71f85c94",
+  "6457adf361684bbb71f85c9c",
+];
+
 const product = async (product) => {
   // awaitj
   const title = product?.brand.charAt(0).toUpperCase() + product?.brand.slice(1).toLowerCase();
@@ -46,12 +95,15 @@ const product = async (product) => {
       brand: brandId,
       price: price < 1000000 ? price * 1000 : price,
       priceSale: price < 1000000 ? Math.round(price / 2) * 1000 : Math.round(price / 2),
+      colors: colorsId,
+      rams: ramsId,
+      internals: internalsId,
       category: cateId,
       quantity: Math.round(Math.random() * 1000) + 700,
       sold: Math.round(Math.random() * 700),
       images: product?.images,
       thumb: product?.thumb,
-      color: "Black",
+      totalRatings: Math.floor(Math.random() * 5),
     },
     { new: true },
   );
@@ -100,7 +152,15 @@ const brandCatefn = async (brands, cate) => {
 
 const insertProduct = asyncHandler(async (req, res) => {
   const promises = [];
-
+  // for (let i of colors) {
+  //   promises.push(await color.create({ name: i }));
+  // }
+  // for (let i of rams) {
+  //   promises.push(await ram.create({ name: i }));
+  // }
+  // for (let i of internals) {
+  //   promises.push(await internal.create({ name: i }));
+  // }
   // for (let i of dataCate) {
   //   promises.push(catefn(i));
   // }
@@ -117,7 +177,7 @@ const insertProduct = asyncHandler(async (req, res) => {
   // }
   // await Promise.all(promises);
   // const product = await Product.find()
-  await Product.updateMany({ news: true }, { $set: { totalRatings: 5 } });
+  await Product.updateMany({ category: "643d569e1fa81726d1cc8fff" }, { $set: { news: true } });
   //  console.log(first)
 
   return res.status(200).json({ msg: "ok" });

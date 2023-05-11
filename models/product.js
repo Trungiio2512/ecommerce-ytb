@@ -28,6 +28,24 @@ var productSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    rams: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Ram",
+      },
+    ],
+    internals: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Internal",
+      },
+    ],
+    colors: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Color",
+      },
+    ],
     delivery: {
       type: String,
       default: "",
