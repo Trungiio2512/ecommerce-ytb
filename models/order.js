@@ -9,7 +9,10 @@ var orderSchema = new mongoose.Schema({
         ref: "Product",
       },
       count: Number,
-      color: String,
+      color: {
+        type: mongoose.Types.ObjectId,
+        ref: "Color",
+      },
     },
   ],
   status: {

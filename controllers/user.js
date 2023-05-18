@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const Cart = require("../models/cart");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -65,22 +66,10 @@ const finalRegister = asyncHandler(async (req, res) => {
   } else {
     const { token, ...passData } = cookies.user_register;
     const newUser = await User.create(passData);
-    const accessToken = generateAccessToken({ id: newUser._id, role: newUser.role });
-    const newrefreshToken = generateRefreshToken({ id: newUser._id });
+    // const newrefreshToken = generateRefreshToken({ id: newUser._id });
     //lưu refresh token vào db
-    await User.findByIdAndUpdate(newUser._id, { refreshToken: newrefreshToken }, { new: true });
+    await User.findByIdAndUpdate(newUser._id, { new: true });
     res.clearCookie("user_register");
-
-    res.cookie("refreshToken", newrefreshToken, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    // return res.status(200).json({
-    //   sucess: newUser ? true : false,
-    //   msg: newUser ? "User already" : "Something is wrong",
-    //   data: newUser,
-    //   token: accessToken,
-    // });
     if (newUser) {
       return res.redirect(`${process.env.URL_ClIENT}/verify_email/sucess`);
     } else {
@@ -95,8 +84,8 @@ const login = asyncHandler(async (req, res, next) => {
   if (!email || !password) return res.status(400).json({ sucess: false, msg: "Missing value" });
   const response = await User.findOne({ email });
   if (response && (await response.isCorrectPassword(password))) {
-    const { password, role, refreshToken, ...passData } = response.toObject();
-    const accessToken = generateAccessToken({ id: response._id, role });
+    const { password, refreshToken, ...passData } = response.toObject();
+    const accessToken = generateAccessToken({ id: response._id, role: response?.role });
     const newrefreshToken = generateRefreshToken({ id: response._id });
     //lưu refresh token vào db
     await User.findByIdAndUpdate(response._id, { refreshToken: newrefreshToken }, { new: true });
@@ -248,20 +237,31 @@ const delUserByAdmin = asyncHandler(async (req, res, next) => {
     // data: result,
   });
 });
-const upCart = asyncHandler(async (req, res) => {
+const upItemOrCreateCart = asyncHandler(async (req, res) => {
   const { id } = req.user;
   const { pid, quantity, color } = req.body;
   if (!pid || !quantity || !color) throw new Error("Missing value");
-  const cartUser = await User.findById(id).select("cart");
-  const product = cartUser?.cart?.find((el) => el?.product.toString() === pid);
+  const cartUser = await Cart.findOne({ userBy: id }).select("list");
   let response;
-  if (product) {
-    if (product?.color === color) {
-      response = await User.updateOne(
-        { cart: { $elemMatch: product } },
-        { $set: { "cart.$.quantity": +product?.quantity + +quantity } },
-        { new: true },
-      );
+  if (cartUser) {
+    const product = cartUser?.list?.find((el) => el?.product.toString() === pid);
+    if (product) {
+      const productColor = cartUser?.list?.find((el) => el?.color?.toString() === color);
+      if (productColor) {
+        response = await Cart.updateOne(
+          { list: { $elemMatch: productColor } },
+          { $set: { "list.$.quantity": +quantity } },
+          { new: true },
+        );
+      } else {
+        response = await Cart.findOneAndUpdate(
+          { userBy: id },
+          {
+            $push: { list: { product: pid, quantity, color } },
+          },
+          { new: true },
+        );
+      }
     } else {
       response = await User.findByIdAndUpdate(
         id,
@@ -272,17 +272,12 @@ const upCart = asyncHandler(async (req, res) => {
       );
     }
   } else {
-    response = await User.findByIdAndUpdate(
-      id,
-      {
-        $push: { cart: { product: pid, quantity, color } },
-      },
-      { new: true },
-    );
+    response = await Cart.create({ userBy: id, list: [{ product: pid, quantity, color }] });
+    await User.updateOne({ _id: id }, { $set: { cart: response?._id } });
   }
   return res.status(200).json({
-    susccess: response ? true : false,
-    msg: response ? "sucess" : "Failed",
+    sucess: response ? true : false,
+    msg: response ? "Update cart succcessfully" : "Has problem updating cart",
   });
   // console.log(cart);
 });
@@ -300,10 +295,38 @@ const upQuantityProductCart = asyncHandler(async (req, res, next) => {
     { new: true },
   );
   return res.status(200).json({
-    susccess: response ? true : false,
+    sucess: response ? true : false,
     msg: response ? "sucess" : "Failed",
   });
 });
+const delItemCart = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  const { pid, color } = req.body;
+
+  const hasIitem = await Cart.findOne({
+    userBy: id,
+    list: { $elemMatch: { product: pid, color } },
+  });
+  if (hasIitem) {
+    const del = await Cart.updateOne(
+      {
+        userBy: id,
+      },
+      {
+        $pull: { list: { product: pid, color } },
+      },
+      { new: true },
+    );
+    return res.status(200).json({
+      sucess: del ? true : false,
+      msg: del ? "Delete item sucessfully" : "Can not delete item",
+      del,
+    });
+  } else {
+    return res.status(200).json({ sucess: false, msg: "Has not item in cart" });
+  }
+});
+
 module.exports = {
   register,
   login,
@@ -316,7 +339,8 @@ module.exports = {
   delUser,
   upCurrentUser,
   delUserByAdmin,
-  upCart,
+  upItemOrCreateCart,
   upQuantityProductCart,
   finalRegister,
+  delItemCart,
 };

@@ -104,10 +104,6 @@ var productSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    color: {
-      type: String,
-      require: true,
-    },
     ratings: [
       {
         star: { type: Number },

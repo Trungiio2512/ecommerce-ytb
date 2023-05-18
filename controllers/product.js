@@ -55,10 +55,10 @@ const getAllProduct = asyncHandler(async (req, res) => {
   if (queries?.internals) {
     formattedQueries.internals = { $in: queries?.internals };
   }
-  if (queries?.priceFrom) {
+  if (isFinite(queries?.priceFrom) && queries?.priceFrom > 0) {
     formattedQueries.price = { $gte: queries?.priceFrom };
   }
-  if (queries?.priceTo) {
+  if (isFinite(queries?.priceTo) && queries?.priceTo > 0) {
     formattedQueries.price = { $lte: queries?.priceTo };
   }
   if (queries?.brand) {
