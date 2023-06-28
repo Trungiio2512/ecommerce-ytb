@@ -1,19 +1,21 @@
 const Product = require("../models/product");
+const Category = require("../models/productCategory");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 const cloudinary = require("cloudinary").v2;
 const createProduct = asyncHandler(async (req, res) => {
-  if (!req.body.title) throw new Error("Title product is not available");
-  if (!req.files) throw new Error("Images product is not available");
-  if (Object.keys(req.body).length === 0) throw new Error("Missing value for product");
-  console.log(req.files);
+  if (!req.body.thumb) throw new Error("Thumbnails must have been provided");
+  if (!req.body.images.length > 0) throw new Error("Images must have been provided");
   req.body.slug = slugify(req.body.title);
-  req.body.images = req.files.map((ele) => ele.path);
   const newProduct = await Product.create(req.body);
+  if (!newProduct) {
+    req.body.thumb.filename && cloudinary.uploader.destroy(req.body.thumb.filename);
+    req.body.images.length > 0 &&
+      req.body.images.forEach((item) => cloudinary.uploader.destroy(item.filename));
+  }
   return res.status(200).json({
     sucess: newProduct ? true : false,
-    msg: newProduct ? "Create product sucessfully" : "Cannot create product",
-    data: newProduct,
+    msg: newProduct ? "Create successfully" : "Create failed",
   });
 });
 const getProduct = asyncHandler(async (req, res) => {
@@ -119,13 +121,13 @@ const upProduct = asyncHandler(async (req, res) => {
   });
 });
 const delProduct = asyncHandler(async (req, res) => {
-  const { pid } = req.body;
+  const { pid } = req.params;
   if (!pid) throw new Error("Missing value");
   const product = await Product.findByIdAndDelete({ _id: pid });
   return res.status(200).json({
     sucess: product ? true : false,
     msg: product ? "Delete product sucessfully" : "Cannot delete product",
-    data: product,
+    product,
   });
 });
 const ratings = asyncHandler(async (req, res) => {

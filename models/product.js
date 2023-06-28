@@ -16,7 +16,6 @@ var productSchema = new mongoose.Schema(
     },
     specifications: {
       type: Array,
-      required: true,
       default: [],
       // unique: true,
     },
@@ -96,13 +95,15 @@ var productSchema = new mongoose.Schema(
       // required: ,
       default: 0,
     },
-    images: {
-      type: Array,
-      default: [],
-    },
+    images: [
+      {
+        url: String,
+        filename: String,
+      },
+    ],
     thumb: {
-      type: String,
-      default: "",
+      url: String,
+      filename: String,
     },
     ratings: [
       {

@@ -14,8 +14,8 @@ var brandSchema = new mongoose.Schema(
       required: true,
     },
     image: {
-      type: String,
-      default: "",
+      url: String,
+      filename: String  
     },
     categories: [
       {

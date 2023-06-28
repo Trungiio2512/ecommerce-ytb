@@ -8,6 +8,10 @@ var userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    fileName: {
+      type: String,
+      default: "",
+    },
     firstName: {
       type: String,
       required: true,

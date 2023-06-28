@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const Cart = require("../models/cart");
+const cloudinary = require("cloudinary").v2;
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -102,11 +103,32 @@ const login = asyncHandler(async (req, res, next) => {
 });
 const getCurrent = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
-  const user = await User.findById(id).select("-refreshToken -password -role");
+  const user = await User.findById(id).select("address avatar email firstName lastName mobile");
   // console.log(id);
   return res
     .status(200)
     .json({ sucess: user ? true : false, msg: user ? "sucess" : "User not exists", data: user });
+});
+const upCurrentUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.user;
+  if (!id || Object.keys(req.body).length <= 0) throw new Error("Missing value for user");
+  const user = await User.findOne({ _id: id });
+  if (req.file) {
+    user.fileName && cloudinary.uploader.destroy(user.fileName);
+    req.body.avatar = req.file.path;
+    req.body.fileName = req.file.filename;
+    user.save();
+  }
+  // if (!req.body?.address) throw new Error("Cannot missing address");
+  const result = await User.findByIdAndUpdate({ _id: id }, req.body, { new: true }).select(
+    "-password -role -refreshToken",
+  );
+  return res.status(200).json({
+    sucess: result ? true : false,
+    msg: result ? `User udpate succcessfully` : "Cannot update user",
+    data: result,
+    file: req.file,
+  });
 });
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
@@ -131,7 +153,7 @@ const logout = asyncHandler(async (req, res) => {
   }
   await User.findByIdAndUpdate({ _id: id }, { refreshToken: "" }, { new: true });
   res.clearCookie("refreshToken", { httpOnly: true, secure: true });
-  return res.statusCode(200).json({ sucess: true, msg: "Logout sucessfully" });
+  return res.status(200).json({ sucess: true, msg: "Logout sucessfully" });
 });
 //xác thực bằng cách gửi link qua mail
 const forgotPass = asyncHandler(async (req, res) => {
@@ -214,21 +236,9 @@ const delUser = asyncHandler(async (req, res, next) => {
     msg: result ? `User with email ${result.email} succcess` : "Cannot delete user",
   });
 });
-const upCurrentUser = asyncHandler(async (req, res, next) => {
-  const { id } = req.user;
-  if (!id || Object.keys(req.body).length <= 0) throw new Error("Missing value for user");
-  // if (!req.body?.address) throw new Error("Cannot missing address");
-  const result = await User.findByIdAndUpdate({ _id: id }, req.body, { new: true }).select(
-    "-password -role -refreshToken",
-  );
-  return res.status(200).json({
-    sucess: result ? true : false,
-    msg: result ? `User udpate succcessfully` : "Cannot update user",
-    data: result,
-  });
-});
+
 const delUserByAdmin = asyncHandler(async (req, res, next) => {
-  const { id } = req.body;
+  const { id } = req.params;
   if (!id) throw new Error("Missing value for user");
   const result = await User.findByIdAndDelete({ _id: id });
   return res.status(200).json({
@@ -237,94 +247,22 @@ const delUserByAdmin = asyncHandler(async (req, res, next) => {
     // data: result,
   });
 });
-const upItemOrCreateCart = asyncHandler(async (req, res) => {
-  const { id } = req.user;
-  const { pid, quantity, color } = req.body;
-  if (!pid || !quantity || !color) throw new Error("Missing value");
-  const cartUser = await Cart.findOne({ userBy: id }).select("list");
-  let response;
-  if (cartUser) {
-    const product = cartUser?.list?.find((el) => el?.product.toString() === pid);
-    if (product) {
-      const productColor = cartUser?.list?.find((el) => el?.color?.toString() === color);
-      if (productColor) {
-        response = await Cart.updateOne(
-          { list: { $elemMatch: productColor } },
-          { $set: { "list.$.quantity": +quantity } },
-          { new: true },
-        );
-      } else {
-        response = await Cart.findOneAndUpdate(
-          { userBy: id },
-          {
-            $push: { list: { product: pid, quantity, color } },
-          },
-          { new: true },
-        );
-      }
-    } else {
-      response = await User.findByIdAndUpdate(
-        id,
-        {
-          $push: { cart: { product: pid, quantity, color } },
-        },
-        { new: true },
-      );
-    }
-  } else {
-    response = await Cart.create({ userBy: id, list: [{ product: pid, quantity, color }] });
-    await User.updateOne({ _id: id }, { $set: { cart: response?._id } });
+const upUserByAdmin = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  if (!id || Object.keys(req.body).length <= 0) throw new Error("Missing value for user");
+  const user = await User.findOne({ _id: id });
+  if (req.file) {
+    user.fileName && cloudinary.uploader.destroy(user.fileName);
+    req.body.avatar = file.path;
+    req.body.fileName = file.filename;
+    user.save();
   }
+  // if (!req.body?.address) throw new Error("Cannot missing address");
+  const result = await User.findByIdAndUpdate({ _id: id }, req.body, { new: true });
   return res.status(200).json({
-    sucess: response ? true : false,
-    msg: response ? "Update cart succcessfully" : "Has problem updating cart",
+    sucess: result ? true : false,
+    msg: result ? `User udpate succcessfully` : "Cannot update user",
   });
-  // console.log(cart);
-});
-const upQuantityProductCart = asyncHandler(async (req, res, next) => {
-  const { id } = req.user;
-  const { pid, quantity, color } = req.body;
-  if (!pid || !quantity || !color) throw new Error("Missing value");
-  const cartUser = await User.findById(id).select("cart");
-  const product = cartUser?.cart?.find(
-    (el) => el?.product.toString() === pid && el?.color === color,
-  );
-  const response = await User.updateOne(
-    { cart: { $elemMatch: product } },
-    { $set: { "cart.$.quantity": quantity } },
-    { new: true },
-  );
-  return res.status(200).json({
-    sucess: response ? true : false,
-    msg: response ? "sucess" : "Failed",
-  });
-});
-const delItemCart = asyncHandler(async (req, res) => {
-  const { id } = req.user;
-  const { pid, color } = req.body;
-
-  const hasIitem = await Cart.findOne({
-    userBy: id,
-    list: { $elemMatch: { product: pid, color } },
-  });
-  if (hasIitem) {
-    const del = await Cart.updateOne(
-      {
-        userBy: id,
-      },
-      {
-        $pull: { list: { product: pid, color } },
-      },
-      { new: true },
-    );
-    return res.status(200).json({
-      sucess: del ? true : false,
-      msg: del ? "Delete item sucessfully" : "Can not delete item",
-      del,
-    });
-  } else {
-    return res.status(200).json({ sucess: false, msg: "Has not item in cart" });
-  }
 });
 
 module.exports = {
@@ -339,8 +277,6 @@ module.exports = {
   delUser,
   upCurrentUser,
   delUserByAdmin,
-  upItemOrCreateCart,
-  upQuantityProductCart,
   finalRegister,
-  delItemCart,
+  upUserByAdmin,
 };

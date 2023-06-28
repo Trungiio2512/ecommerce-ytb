@@ -8,9 +8,9 @@ router.get("/one/:pid", ctrls.getProduct);
 router.use(verifyAccessToken);
 router.put("/ratings", ctrls.ratings);
 router.use(isAdmin);
-router.post("/create", uploader.array("images", 10), ctrls.createProduct);
-router.delete("/", ctrls.delProduct);
-router.put("/:pid", uploader.array("images", 10), ctrls.upProduct);
+router.post("/create", ctrls.createProduct);
+router.delete("/delete/:pid", ctrls.delProduct);
+router.patch("/up/:pid", uploader.array("images", 10), uploader.single("thumb"), ctrls.upProduct);
 router.put("/upload_image/:pid", uploader.array("images", 10), ctrls.uploadImage);
 
 module.exports = router;

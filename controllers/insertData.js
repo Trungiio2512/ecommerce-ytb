@@ -104,6 +104,8 @@ const product = async (product) => {
       images: product?.images,
       thumb: product?.thumb,
       totalRatings: Math.floor(Math.random() * 5),
+      news: true,
+      features: true,
     },
     { new: true },
   );
@@ -172,12 +174,12 @@ const insertProduct = asyncHandler(async (req, res) => {
   // for (let i of dataCate) {
   //   promises.push(brandCatefn(i?.brands, i?.cate));
   // }
-  // for (let i of data) {
-  //   promises.push(product(i));
-  // }
-  // await Promise.all(promises);
+  for (let i of data) {
+    promises.push(product(i));
+  }
+  await Promise.all(promises);
   // const product = await Product.find()
-  await Product.updateMany({ category: "643d569e1fa81726d1cc8fff" }, { $set: { news: true } });
+  // await Product.updateMany({ category: "643d569e1fa81726d1cc8fff" }, { $set: { news: true } });
   //  console.log(first)
 
   return res.status(200).json({ msg: "ok" });

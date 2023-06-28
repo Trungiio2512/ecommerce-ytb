@@ -1,10 +1,13 @@
 const ProductCategory = require("../models/productCategory");
 const products = require("../models/product");
 const asyncHandler = require("express-async-handler");
+const cloudinary = require("cloudinary").v2;
+
 const slugify = require("slugify");
 const create = asyncHandler(async (req, res) => {
   if (!req.body.title) throw new Error("Title product category is not available");
   if (Object.keys(req.body).length === 0) throw new Error("Missing value for product category");
+  console.log(req.body);
   req.body.slug = slugify(req.body.title);
   const newCategory = await ProductCategory.create(req.body);
   return res.status(200).json({
@@ -22,7 +25,9 @@ const getAll = asyncHandler(async (req, res) => {
 });
 const update = asyncHandler(async (req, res) => {
   const { pcid } = req.params;
-  req.body.slug = slugify(req.body.title);
+  if (req.body.title) {
+    req.body.slug = slugify(req.body.title);
+  }
   const response = await ProductCategory.findByIdAndUpdate(pcid, req.body, { new: true });
   return res.status(200).json({
     sucess: response ? true : false,
@@ -32,11 +37,15 @@ const update = asyncHandler(async (req, res) => {
 });
 const deleted = asyncHandler(async (req, res) => {
   const { pcid } = req.params;
+  console.log(pcid);
   const response = await ProductCategory.findByIdAndDelete(pcid);
+  if (response) {
+    cloudinary.uploader.destroy(response.image.filename);
+  }
   return res.status(200).json({
     sucess: response ? true : false,
     msg: response ? "Delete product category sucessfully" : "Cannot Delete product category",
-    // data: response,
+    data: response,
   });
 });
 module.exports = {

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose"); // Erase if already required
 
 // Declare the Schema of the Mongo model
-var prodicuCategory = new mongoose.Schema(
+var productCategory = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -14,9 +14,8 @@ var prodicuCategory = new mongoose.Schema(
       required: true,
     },
     image: {
-      type: String,
-      // require: true,
-      default: "",
+      url: String,
+      filename: String,
     },
     brands: [
       {
@@ -29,4 +28,4 @@ var prodicuCategory = new mongoose.Schema(
 );
 
 //Export the model
-module.exports = mongoose.model("Category", prodicuCategory);
+module.exports = mongoose.model("Category", productCategory);
