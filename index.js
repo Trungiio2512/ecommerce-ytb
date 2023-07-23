@@ -8,6 +8,8 @@ const cors = require("cors");
 const port = process.env.PORT || 8888;
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
@@ -18,8 +20,6 @@ app.use(
 );
 // app.use(bodyParser.json());
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 dbConnect();
 initRoutes(app);
 app.listen(port, () => console.log("port is running on port " + port));

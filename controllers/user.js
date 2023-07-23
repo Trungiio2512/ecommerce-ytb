@@ -42,11 +42,7 @@ const register = asyncHandler(async (req, res, next) => {
     throw new Error("User has exist");
   } else {
     const token = uniqid();
-    res.cookie(
-      "user_register",
-      { ...req.body, token },
-      { httpOnly: true, maxAge: Date.now() + 5 * 1000 },
-    );
+    res.cookie("user_register", { ...req.body, token }, { httpOnly: true, maxAge: Date.now() + 5 * 1000 });
     const html = `Vui vui lòng nhấn vào đây để xác thực tài khoản.<a href="${process.env.URL_SERVER}/api/v1/user/verify_email/${token}">Click</a>`;
     const data = {
       email,
@@ -94,9 +90,7 @@ const login = asyncHandler(async (req, res, next) => {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return res
-      .status(200)
-      .json({ sucess: true, msg: "Login succcessfully", token: accessToken, data: passData });
+    return res.status(200).json({ sucess: true, msg: "Login succcessfully", token: accessToken, data: passData });
   } else {
     throw new Error("Password is incorrect or email not existing");
   }
@@ -105,9 +99,7 @@ const getCurrent = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
   const user = await User.findById(id).select("address avatar email firstName lastName mobile");
   // console.log(id);
-  return res
-    .status(200)
-    .json({ sucess: user ? true : false, msg: user ? "sucess" : "User not exists", data: user });
+  return res.status(200).json({ sucess: user ? true : false, msg: user ? "sucess" : "User not exists", data: user });
 });
 const upCurrentUser = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
@@ -140,9 +132,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       return res.status(401).json({ sucess: false, msg: "You must be logged in" });
     }
     const response = await User.findOne({ _id: data.id, refreshToken: cookie.refreshToken });
-    const newAccessToken =
-      response && generateAccessToken({ id: response._id, role: response.role });
-    return res.status(200).json({ succes: response ? true : false, token: newAccessToken });
+    const newAccessToken = response && generateAccessToken({ id: response._id, role: response.role });
+    return res.status(200).json({ sucess: response ? true : false, token: newAccessToken });
   });
 });
 const logout = asyncHandler(async (req, res) => {

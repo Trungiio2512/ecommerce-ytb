@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const WishtList = require("../models/wishlist");
+const User = require("../models/user");
 const wishlist = asyncHandler(async (req, res) => {
   const { pid } = req.params;
   const { id } = req.user;

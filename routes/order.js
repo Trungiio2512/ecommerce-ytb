@@ -9,10 +9,11 @@ const {
 
 // router.get("/", ctrls.getAll);
 router.use(verifyAccessToken);
-router.post("/", ctrls.create);
+router.post("/create", ctrls.create);
 router.get("/all", ctrls.gets);
+router.get("/all/:type", ctrls.gets);
 
-router.use(isCreatorOrAdmin);
+router.use(isAdmin);
 router.put("/update_status/:oid", ctrls.updateStatus);
 
 router.use(isAdmin);

@@ -1,7 +1,6 @@
 const user = require("./user");
 const product = require("./product");
 const productCategory = require("./productCategory");
-const blogCategory = require("./blogCategory");
 const blog = require("./blog");
 const brand = require("./brand");
 const coupon = require("./coupon");
@@ -16,7 +15,6 @@ const initRoutes = (app) => {
   app.use("/api/v1/user", user);
   app.use("/api/v1/product", product);
   app.use("/api/v1/product_category", productCategory);
-  app.use("/api/v1/blog_category", blogCategory);
   app.use("/api/v1/blog", blog);
   app.use("/api/v1/brand", brand);
   app.use("/api/v1/coupon", coupon);
@@ -27,6 +25,6 @@ const initRoutes = (app) => {
   app.use("/api/v1/ram", ram);
   app.use("/api/v1/internal", internal);
   app.use(notFound);
-  app.use(errorhandler);
+  // app.use(errorhandler);
 };
 module.exports = initRoutes;

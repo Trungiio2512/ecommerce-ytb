@@ -3,9 +3,9 @@ const ctrls = require("../controllers/coupon");
 const { verifyAccessToken, isAdmin } = require("../middlewares/verifyToken");
 
 router.get("/", ctrls.getAll);
+router.post("/", ctrls.create);
 router.use(verifyAccessToken);
 router.use(isAdmin);
-router.post("/", ctrls.create);
 router.put("/:cid", ctrls.update);
 router.delete("/:cid", ctrls.deleted);
 

@@ -10,8 +10,7 @@ const createProduct = asyncHandler(async (req, res) => {
   const newProduct = await Product.create(req.body);
   if (!newProduct) {
     req.body.thumb.filename && cloudinary.uploader.destroy(req.body.thumb.filename);
-    req.body.images.length > 0 &&
-      req.body.images.forEach((item) => cloudinary.uploader.destroy(item.filename));
+    req.body.images.length > 0 && req.body.images.forEach((item) => cloudinary.uploader.destroy(item.filename));
   }
   return res.status(200).json({
     sucess: newProduct ? true : false,
@@ -21,6 +20,7 @@ const createProduct = asyncHandler(async (req, res) => {
 const getProduct = asyncHandler(async (req, res) => {
   const { pid } = req.params;
   const product = await Product.findById({ _id: pid })
+    .select("-ratings")
     .populate({ path: "brand", model: "Brand", select: "title slug" })
     .populate({ path: "category", model: "Category", select: "title slug" })
     .populate({ path: "rams", model: "Ram", select: "name" })
@@ -132,8 +132,9 @@ const delProduct = asyncHandler(async (req, res) => {
 });
 const ratings = asyncHandler(async (req, res) => {
   const { id } = req.user;
-  const { star, comment, pid } = req.body;
-  if (!star || !pid) throw new Error("Missing value");
+  const { star, comment } = req.body;
+  const { pid } = req.params;
+  if (!star || !pid || !comment) throw new Error("Missing value");
   const ratingProduct = await Product.findById(pid);
   // console.log(ratingProduct);
   const existRating = ratingProduct?.ratings?.find((el) => el.postedBy.toString() === id);
@@ -149,7 +150,7 @@ const ratings = asyncHandler(async (req, res) => {
     await Product.findByIdAndUpdate(
       pid,
       { $push: { ratings: { star, comment, postedBy: id } } },
-      { new: true },
+      { new: true, upsert: true },
     );
   }
   // sum star rating
@@ -158,7 +159,14 @@ const ratings = asyncHandler(async (req, res) => {
   updatedProduct.totalRatings = Math.round((totalStar * 10) / updatedProduct.ratings.length) / 10;
 
   await updatedProduct.save();
-  return res.status(200).json({ sucess: true, updatedProduct });
+  return res.status(200).json({ sucess: true, msg: "Nhận xét thành công" });
+});
+const getAllRatings = asyncHandler(async (req, res) => {
+  const { pid } = req.params;
+  const comment = await Product.findById(pid)
+    .select("ratings")
+    .populate({ path: "ratings", populate: { path: "postedBy", select: "avatar firstName lastName" } });
+  return res.status(200).json({ sucess: comment ? true : false, data: comment });
 });
 const uploadImage = asyncHandler(async (req, res, next) => {
   // const { files } = req.files;
@@ -182,4 +190,5 @@ module.exports = {
   delProduct,
   ratings,
   uploadImage,
+  getAllRatings,
 };

@@ -2,17 +2,15 @@ const Blog = require("../models/blog");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 const create = asyncHandler(async (req, res) => {
-  const { title, description, category } = req.body;
-  if (!title || !description || !category) throw new Error("Missing value");
+  const { title, description, filename, url, subdes } = req.body;
+  if (!title || !description || !filename || !url || !subdes) throw new Error("Missing value");
   if (Object.keys(req.body).length === 0) throw new Error("Missing value for blog ");
+  req.body.image = { filename, url };
   req.body.slug = slugify(title);
-  console.log(req.file);
-  if (req.file) req.body.image = req.file.path;
   const newBlog = await Blog.create(req.body);
   return res.status(200).json({
     sucess: newBlog ? true : false,
-    msg: newBlog ? "Create blog  sucessfully" : "Cannot create blog ",
-    data: newBlog,
+    msg: newBlog ? "Tạo blog thành công" : "Tạo blog thất bại",
   });
 });
 const getAll = asyncHandler(async (req, res) => {

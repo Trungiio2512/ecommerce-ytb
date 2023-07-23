@@ -42,6 +42,8 @@ var userSchema = new mongoose.Schema(
       default: "user",
     },
     cart: { type: mongoose.Types.ObjectId, ref: "Cart" },
+    order: [{ type: mongoose.Types.ObjectId, ref: "Order" }],
+
     address: {
       type: String,
       default: "",

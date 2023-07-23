@@ -1,40 +1,45 @@
 const mongoose = require("mongoose"); // Erase if already required
 
 // Declare the Schema of the Mongo model
-var orderSchema = new mongoose.Schema({
-  products: [
-    {
-      product: {
-        type: mongoose.Types.ObjectId,
-        ref: "Product",
+var orderSchema = new mongoose.Schema(
+  {
+    products: [
+      {
+        product: {
+          type: mongoose.Types.ObjectId,
+          ref: "Product",
+        },
+        quantity: Number,
+        color: {
+          type: mongoose.Types.ObjectId,
+          ref: "Color",
+        },
+        internal: { type: mongoose.Types.ObjectId, ref: "Internal" },
+        ram: { type: mongoose.Types.ObjectId, ref: "Ram" },
       },
-      count: Number,
-      color: {
-        type: mongoose.Types.ObjectId,
-        ref: "Color",
-      },
+    ],
+    status: {
+      type: String,
+      default: "Processing",
+      enum: ["Processing", "Cancelled", "Delivering", "Sucessed"],
     },
-  ],
-  status: {
-    type: String,
-    default: "Processing",
-    enum: ["Processing", "Cancelled", "sucessed"],
+    totalPrice: Number,
+    coupon: {
+      type: mongoose.Types.ObjectId,
+      ref: "Coupon",
+    },
+    paymentIntent: {},
+    orderBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+    },
+    address: {
+      type: String,
+      require: true,
+    },
   },
-  total: Number,
-  coupon: {
-    type: mongoose.Types.ObjectId,
-    ref: "Coupon",
-  },
-  paymentIntent: {},
-  orderBy: {
-    type: mongoose.Types.ObjectId,
-    ref: "User",
-  },
-  slug: {
-    type: String,
-    // required: true,
-  },
-});
+  { timestamps: true },
+);
 
 //Export the model
 module.exports = mongoose.model("Order", orderSchema);

@@ -12,22 +12,16 @@ var blogSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
-      unique: true,
     },
-    category: {
+    subdes: {
       type: String,
       required: true,
-      // unique: true,
     },
     slug: {
       type: String,
       required: true,
     },
-    numberView: {
-      type: Number,
-      // required: true,
-      default: 0,
-    },
+
     // isLiked: {
     //   type: Boolean,
     //   default: false,
@@ -49,8 +43,8 @@ var blogSchema = new mongoose.Schema(
       },
     ],
     image: {
-      type: String,
-      default: "https://blog.topcv.vn/wp-content/uploads/2020/04/Thumb-TCVDBPV-1-1.png",
+      filename: String,
+      url: String,
     },
     author: {
       type: String,
