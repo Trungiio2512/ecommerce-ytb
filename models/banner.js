@@ -2,14 +2,12 @@ const mongoose = require("mongoose"); // Erase if already required
 
 // Declare the Schema of the Mongo model
 var bannerSchema = new mongoose.Schema({
-  images: {
-    type: Array,
-    default: [],
+  url: {
+    type: String,
     required: true,
   },
-  filenames: {
-    type: Array,
-    default: [],
+  filename: {
+    type: String,
   },
 });
 
