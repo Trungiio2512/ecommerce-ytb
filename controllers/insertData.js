@@ -45,20 +45,21 @@ const colors = [
 const rams = ["4GB", "8GB", "16GB", "32GB", "64GB"];
 const internals = ["16GB", "32GB", "64GB", "128GB", "256GB", "512GB"];
 
-const ramsId = ["6457adf361684bbb71f85c8a", "6457adf361684bbb71f85c8c", "6457adf361684bbb71f85c90"];
+const ramsId = ["64d4846a59361968f160092d", "64d4846a59361968f160092f", "64d4846a59361968f1600931"];
 const colorsId = [
-  "6457adf361684bbb71f85c4e",
-  "6457adf361684bbb71f85c5a",
-  "6457adf361684bbb71f85c64",
+  "64d4846a59361968f1600913",
+  "64d4846a59361968f1600915",
+  "64d4846a59361968f1600917",
 ];
 const internalsId = [
-  "6457adf361684bbb71f85c98",
-  "6457adf361684bbb71f85c94",
-  "6457adf361684bbb71f85c9c",
+  "64d4846a59361968f1600937",
+  "64d4846a59361968f1600939",
+  "64d4846a59361968f160093d",
 ];
 
 const product = async (product) => {
   // awaitj
+  console.log(product)
   const title = product?.brand.charAt(0).toUpperCase() + product?.brand.slice(1).toLowerCase();
   const hasBrand = await Brand.findOne({
     title,
@@ -113,19 +114,23 @@ const product = async (product) => {
 
 const catefn = async (cate) => {
   const brandPromise = [];
-  for (let i of cate.brands) {
+  for (let i of cate?.brands) {
     brandPromise.push(await Brand.findOne({ title: i }).select("_id"));
   }
-  // return brandPromise;
-  await productCategory.create(
+  // return brandPromise;s
+  const data =  (await Promise.all(brandPromise))
+  // return data.map(e=> e._id)
+  await productCategory.updateOne(
+    {slug: cate?.cate},
     {
-      title: cate?.cate.charAt(0).toUpperCase() + cate?.cate.slice(1).toLowerCase(),
-      slug: slugify(cate?.cate),
-      image: cate?.image,
-      // brandCates: cate?.brands,
-      brands: brandPromise,
-    },
-    { new: true },
+      $set: {
+        // brands: data.map(e=> e._id)
+        image: {
+          url: cate?.image,
+          filename: ''
+        }
+      }
+    }
   );
 };
 
@@ -174,15 +179,17 @@ const insertProduct = asyncHandler(async (req, res) => {
   // for (let i of dataCate) {
   //   promises.push(brandCatefn(i?.brands, i?.cate));
   // }
-  for (let i of data) {
+  const newData = data.filter(e => e.category ==='Accessories')
+  for (let i of newData) {
     promises.push(product(i));
   }
+  
   await Promise.all(promises);
   // const product = await Product.find()
   // await Product.updateMany({ category: "643d569e1fa81726d1cc8fff" }, { $set: { news: true } });
   //  console.log(first)
 
-  return res.status(200).json({ msg: "ok" });
+  return res.status(200).json({ msg: "ok" , data: await Promise.all(promises)});
 });
 module.exports = {
   insertProduct,

@@ -11,7 +11,6 @@ var brandSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
     },
     image: {
       url: String,

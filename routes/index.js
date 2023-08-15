@@ -25,6 +25,6 @@ const initRoutes = (app) => {
   app.use("/api/v1/ram", ram);
   app.use("/api/v1/internal", internal);
   app.use(notFound);
-  // app.use(errorhandler);
+  app.use(errorhandler);
 };
 module.exports = initRoutes;
