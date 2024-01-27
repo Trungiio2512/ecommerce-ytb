@@ -104,11 +104,11 @@ const getCurrent = asyncHandler(async (req, res, next) => {
 const upCurrentUser = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
   if (!id || Object.keys(req.body).length <= 0) throw new Error("Missing value for user");
-  if(req.body.image) {
+  if (req.body.image) {
     req.body.avatar = req.body.image.url;
     req.body.fileName = req.body.image.fileName;
   }
-  if(req.body.oldFileName) { 
+  if (req.body.oldFileName) {
     cloudinary.uploader.destroy(req.body.oldFileName);
   }
   const user = await User.findOne({ _id: id }, req.body);
@@ -120,7 +120,7 @@ const upCurrentUser = asyncHandler(async (req, res, next) => {
   // }
   // if (!req.body?.address) throw new Error("Cannot missing address");
   const result = await User.findByIdAndUpdate({ _id: id }, req.body, { new: true }).select(
-    "-password -role -refreshToken",
+    "-password -role -refreshToken"
   );
   return res.status(200).json({
     sucess: result ? true : false,
