@@ -16,4 +16,4 @@ app.use(cookieParser());
 
 dbConnect();
 initRoutes(app);
-app.listen(process.env.PORT, () => console.log("port is running on port " + port));
+app.listen(process.env.PORT, () => console.log("port is running on port ", process.env.PORT));
