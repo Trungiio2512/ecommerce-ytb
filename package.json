@@ -1,8 +1,9 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "node v16.18.0",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
