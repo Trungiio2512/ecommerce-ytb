@@ -7,8 +7,8 @@ const internal = require("../models/internal");
 const color = require("../models/color");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
-const data = require("../../server/data/ecom.json");
-const dataCate = require("../../server/data/cate.json");
+const data = require("../data/ecom.json");
+const dataCate = require("../data/cate.json");
 const { default: mongoose } = require("mongoose");
 const colors = [
   "Black",
