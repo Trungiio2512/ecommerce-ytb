@@ -59,7 +59,6 @@ const internalsId = [
 
 const product = async (product) => {
   // awaitj
-  console.log(product)
   const title = product?.brand.charAt(0).toUpperCase() + product?.brand.slice(1).toLowerCase();
   const hasBrand = await Brand.findOne({
     title,
@@ -108,7 +107,7 @@ const product = async (product) => {
       news: true,
       features: true,
     },
-    { new: true },
+    { new: true }
   );
 };
 
@@ -118,18 +117,18 @@ const catefn = async (cate) => {
     brandPromise.push(await Brand.findOne({ title: i }).select("_id"));
   }
   // return brandPromise;s
-  const data =  (await Promise.all(brandPromise))
+  const data = await Promise.all(brandPromise);
   // return data.map(e=> e._id)
   await productCategory.updateOne(
-    {slug: cate?.cate},
+    { slug: cate?.cate },
     {
       $set: {
         // brands: data.map(e=> e._id)
         image: {
           url: cate?.image,
-          filename: ''
-        }
-      }
+          filename: "",
+        },
+      },
     }
   );
 };
@@ -152,7 +151,7 @@ const brandCatefn = async (brands, cate) => {
     await Brand.findOneAndUpdate(
       { title: brand },
       { $push: { categories: hasCate?._id } },
-      { new: true },
+      { new: true }
     );
   }
 };
@@ -179,17 +178,17 @@ const insertProduct = asyncHandler(async (req, res) => {
   // for (let i of dataCate) {
   //   promises.push(brandCatefn(i?.brands, i?.cate));
   // }
-  const newData = data.filter(e => e.category ==='Accessories')
+  const newData = data.filter((e) => e.category === "Accessories");
   for (let i of newData) {
     promises.push(product(i));
   }
-  
+
   await Promise.all(promises);
   // const product = await Product.find()
   // await Product.updateMany({ category: "643d569e1fa81726d1cc8fff" }, { $set: { news: true } });
   //  console.log(first)
 
-  return res.status(200).json({ msg: "ok" , data: await Promise.all(promises)});
+  return res.status(200).json({ msg: "ok", newData });
 });
 module.exports = {
   insertProduct,
